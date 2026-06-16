@@ -1,0 +1,256 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Product Service Sample with DynamoDB and S3
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 512
+    Runtime: java21
+
+Resources:
+  # KMS key for encrypting DynamoDB and S3
+  EncryptionKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: CMK for Product Service data encryption
+      EnableKeyRotation: true
+      KeyPolicy:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowKeyAdministration
+            Effect: Allow
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Action:
+              - kms:Create*
+              - kms:Describe*
+              - kms:Enable*
+              - kms:List*
+              - kms:Put*
+              - kms:Update*
+              - kms:Revoke*
+              - kms:Disable*
+              - kms:Get*
+              - kms:Delete*
+              - kms:TagResource
+              - kms:UntagResource
+              - kms:ScheduleKeyDeletion
+              - kms:CancelKeyDeletion
+            Resource: "*"
+          - Sid: AllowKeyUsage
+            Effect: Allow
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Action:
+              - kms:Encrypt
+              - kms:Decrypt
+              - kms:ReEncrypt*
+              - kms:GenerateDataKey*
+              - kms:DescribeKey
+            Resource: "*"
+
+  # DynamoDB table for products
+  ProductTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "${AWS::StackName}-products"
+      AttributeDefinitions:
+        - AttributeName: PK
+          AttributeType: S
+      KeySchema:
+        - AttributeName: PK
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification:
+        SSEEnabled: true
+        SSEType: KMS
+        KMSMasterKeyId: !GetAtt EncryptionKey.Arn
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+
+  # S3 bucket for access logs
+  # kics-scan ignore-block
+  LoggingBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${AWS::StackName}-access-logs"
+      AccessControl: Private
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerPreferred
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      VersioningConfiguration:
+        Status: Enabled
+      ObjectLockEnabled: true
+  LoggingBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref LoggingBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowS3LogDelivery
+            Effect: Allow
+            Principal:
+              Service: logging.s3.amazonaws.com
+            Action:
+              - "s3:PutObject"
+            Resource:
+              - !Sub "${LoggingBucket.Arn}/*"
+            Condition:
+              ArnLike:
+                aws:SourceArn:
+                  - !GetAtt LoggingBucket.Arn
+                  - !GetAtt ProductImagesBucket.Arn
+              StringEquals:
+                aws:SourceAccount: !Ref AWS::AccountId
+              Bool:
+                aws:SecureTransport: "true"
+          - Sid: DenyInsecureTransport
+            Effect: Deny
+            Principal: "*"
+            Action: "s3:*"
+            Resource:
+              - !GetAtt LoggingBucket.Arn
+              - !Sub "${LoggingBucket.Arn}/*"
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+
+  # S3 bucket for product images
+  ProductImagesBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${AWS::StackName}-product-images"
+      AccessControl: Private
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: aws:kms
+              KMSMasterKeyID: !GetAtt EncryptionKey.Arn
+      VersioningConfiguration:
+        Status: Enabled
+      ObjectLockEnabled: true
+      LoggingConfiguration:
+        DestinationBucketName: !Ref LoggingBucket
+        LogFilePrefix: product-images/
+
+  # Enforce SSL-only access on product images bucket
+  ProductImagesBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref ProductImagesBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: DenyInsecureTransport
+            Effect: Deny
+            Principal: "*"
+            Action: "s3:*"
+            Resource:
+              - !GetAtt ProductImagesBucket.Arn
+              - !Sub "${ProductImagesBucket.Arn}/*"
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+
+  # Dead letter queue for failed Lambda invocations
+  DeadLetterQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${AWS::StackName}-dlq"
+      KmsMasterKeyId: !Ref EncryptionKey
+      MessageRetentionPeriod: 1209600
+
+  # IAM Access Analyzer for the account
+  AccessAnalyzer:
+    Type: AWS::AccessAnalyzer::Analyzer
+    Properties:
+      AnalyzerName: !Sub "${AWS::StackName}-access-analyzer"
+      Type: ACCOUNT
+      Tags:
+        - Key: Project
+          Value: product-service-sample
+
+  ProductApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: target/sample-product-service.jar
+      Handler: com.amazonaws.serverless.sample.LambdaHandler::handleRequest
+      KmsKeyArn: !GetAtt EncryptionKey.Arn
+      Tracing: Active
+      DeadLetterQueue:
+        Type: SQS
+        TargetArn: !GetAtt DeadLetterQueue.Arn
+      Tags:
+        Project: product-service-sample
+        Environment: demo
+        ManagedBy: SAM
+      Environment:
+        Variables:
+          PRODUCT_TABLE: !Ref ProductTable
+          PRODUCT_IMAGES_BUCKET: !Ref ProductImagesBucket
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ProductTable
+        - S3CrudPolicy:
+            BucketName: !Ref ProductImagesBucket
+        - KMSDecryptPolicy:
+            KeyId: !Ref EncryptionKey
+        - Statement:
+            - Effect: Allow
+              Action:
+                - kms:Encrypt
+                - kms:GenerateDataKey
+              Resource: !GetAtt EncryptionKey.Arn
+      Events:
+        GetProducts:
+          Type: Api
+          Properties:
+            Path: /api/products
+            Method: GET
+        GetProduct:
+          Type: Api
+          Properties:
+            Path: /api/products/{id}
+            Method: GET
+        CreateProduct:
+          Type: Api
+          Properties:
+            Path: /api/products
+            Method: POST
+        UpdateProduct:
+          Type: Api
+          Properties:
+            Path: /api/products/{id}
+            Method: PUT
+        DeleteProduct:
+          Type: Api
+          Properties:
+            Path: /api/products/{id}
+            Method: DELETE
+
+Outputs:
+  ProductApi:
+    Description: "API Gateway endpoint URL"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/api/products"
+  ProductTableName:
+    Description: "DynamoDB table name for products"
+    Value: !Ref ProductTable
+  ProductImagesBucketName:
+    Description: "S3 bucket name for product images"
+    Value: !Ref ProductImagesBucket
