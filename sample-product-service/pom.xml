@@ -16,7 +16,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
-        <dagger.version>2.43.2</dagger.version>
+        <dagger.version>2.60.1</dagger.version>
         <lombok.version>1.18.30</lombok.version>
         <awssdk.version>2.31.10</awssdk.version>
         <netty.version>4.1.132.Final</netty.version>
@@ -45,15 +45,20 @@
 
     <dependencies>
         <!--
-            Serverless Request Dispatcher library.
+            Serverless Request Dispatcher library. Not published to Maven Central.
 
             Maven resolves this from (in order):
             1. Local repository (~/.m2/repository) — run 'mvn clean install'
-               in ../serverless-request-dispatcher/ to install from source
-            2. Remote repositories — once published to Maven Central,
-               CodeArtifact, or GitHub Packages, no local build needed
+               in ../serverless-request-dispatcher/ to install from source.
+               This is what the README "Getting Started" section does.
+            2. A project-specific file-based repository declared in <repositories>
+            3. A remote repository you publish to (AWS CodeArtifact, GitHub Packages)
 
-            See the root README "Resolving the Library Dependency" section.
+            Options 2 and 3, with commands and POM snippets, are documented in
+            guide/guide.md — "Notes: choosing a dependency resolution strategy".
+
+            Brings in com.amazonaws.serverless:aws-serverless-java-container-core
+            transitively, which supplies AwsProxyRequest / AwsProxyResponse.
         -->
         <dependency>
             <groupId>com.amazonaws.serverless</groupId>

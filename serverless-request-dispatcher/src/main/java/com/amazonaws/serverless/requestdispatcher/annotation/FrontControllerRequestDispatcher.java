@@ -100,9 +100,10 @@ public abstract class FrontControllerRequestDispatcher {
 		String httpMethod = request.getHttpMethod();
 		String resourcePath = request.getResource();
 		
-		logger.info("httpMethod:"+httpMethod);
-		logger.info("resourcePath:"+resourcePath);
-		logger.info("mappings::"+mappings);
+		// Per-request diagnostics at FINE/FINEST so they stay out of CloudWatch by default.
+		// Suppliers avoid building the strings unless the level is enabled.
+		logger.fine(() -> "Dispatching " + httpMethod + " " + resourcePath);
+		logger.finest(() -> "Registered routes: " + mappings);
 
 		if (mappings.get(httpMethod).containsKey(resourcePath)) {
 
