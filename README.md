@@ -24,8 +24,8 @@ This library gives you the same developer experience — `@GetMapping`, `@PostMa
 Clone the repository and build the library:
 
 ```bash
-git clone https://github.com/aws-samples/serverless-request-dispatcher.git
-cd serverless-request-dispatcher
+git clone https://github.com/aws-samples/sample-serverless-request-dispatcher.git
+cd sample-serverless-request-dispatcher
 
 # Install the library to your local Maven repository
 cd serverless-request-dispatcher
