@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-03T12:40:27Z",
+  "region": "us-east-1",
+  "stack": "request-dispatcher-benchmark",
+  "commit": "d1fe0b63e48c2676c45dc2e767c5dae498fc9800",
+  "uncommittedFiles": 0,
+  "architecture": "x86_64",
+  "tracing": "Active",
+  "requestedColdStartsPerCell": 100,
+  "variants": "minimal plain sample primed snapstart",
+  "runtimes": "java21",
+  "memoryMb": "512 1024",
+  "snapStartBurst": 25
+}

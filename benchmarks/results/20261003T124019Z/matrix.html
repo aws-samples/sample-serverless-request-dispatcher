@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Benchmark matrix — sample-serverless-request-dispatcher</title>
+<style>
+ :root{--fg:#16191f;--muted:#5f6b7a;--border:#d5dbdb;--alt:#f8f8f8;--accent:#0972d3;}
+ body{font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--fg);max-width:1180px;margin:0 auto;padding:32px 24px 80px}
+ h1{font-size:26px;margin:0 0 4px} h2{font-size:20px;margin:34px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--border)} h3{font-size:16px;margin:18px 0 6px}
+ .subtitle{color:var(--muted);margin:0 0 18px}
+ table{width:100%;border-collapse:collapse;margin:10px 0 16px;font-size:13.5px} th,td{border:1px solid var(--border);padding:6px 9px;text-align:right;vertical-align:middle} th{background:var(--alt);text-align:center} td.l,th.l{text-align:left}
+ tr:nth-child(even) td{background:#fcfcfc}
+ code{font:13px/1.4 SFMono-Regular,Menlo,Consolas,monospace;background:#f2f3f3;padding:1px 4px;border-radius:3px}
+ .meta{display:flex;flex-wrap:wrap;gap:8px 28px;background:var(--alt);border:1px solid var(--border);border-radius:8px;padding:14px 18px;margin:14px 0;font-size:13.5px}
+ .meta div span{color:var(--muted)}
+ .tag{display:inline-block;font-size:12px;font-weight:600;padding:1px 9px;border-radius:10px;color:#fff;white-space:nowrap}
+ .minimal{background:#5f6b7a}.plain{background:#8a6d1f}.sample{background:#b7740f}.primed{background:#946cc9}.snapstart{background:#037f0c}
+ .bar{height:14px;border-radius:3px;display:inline-block;vertical-align:middle;min-width:1px}
+ .barwrap{display:flex;align-items:center;gap:8px} .barwrap span{font-variant-numeric:tabular-nums}
+ .small{font-size:13px;color:var(--muted)}
+ .best{font-weight:700;color:#037f0c}.worst{color:#b7740f}
+ caption{caption-side:top;text-align:left;font-weight:600;margin-bottom:6px}
+ .callout{border-radius:6px;padding:12px 16px;margin:14px 0;background:#f0f6ff;border:1px solid #bcd9f5}
+ ul.caveats li{margin:4px 0}
+</style></head><body>
+
+<h1>Benchmark matrix</h1>
+<p class="subtitle">Cold-start results for <code>aws-samples/sample-serverless-request-dispatcher</code>. Run <code>20261003T124019Z</code>, on the published code.</p>
+
+<div class="meta">
+  <div><span>Date</span><br>2026-10-03T12:40:27Z</div>
+  <div><span>Region</span><br>us-east-1</div>
+  <div><span>Stack</span><br>request-dispatcher-benchmark</div>
+  <div><span>Commit</span><br><code>d1fe0b6</code> (0 uncommitted)</div>
+  <div><span>Architecture</span><br>x86_64</div>
+  <div><span>Runtime</span><br>java21</div>
+  <div><span>Tracing</span><br>X-Ray Active</div>
+  <div><span>Memory sizes</span><br>512 / 1024 MB</div>
+  <div><span>Cold starts / cell</span><br>100 requested</div>
+  <div><span>SnapStart burst</span><br>25</div>
+</div>
+
+<h2>Variants</h2>
+<table>
+<tr><th class="l">Variant</th><th class="l">What it measures</th></tr>
+<tr><td class="l"><span class="tag minimal">minimal</span></td><td class="l">Dispatcher + Dagger only, no AWS SDK clients. Floor for the framework's own init cost.</td></tr>
+<tr><td class="l"><span class="tag plain">plain</span></td><td class="l">Same controller and SDK clients, wired by hand with a switch statement (no annotation dispatcher, no Dagger). The baseline the dispatcher is compared against.</td></tr>
+<tr><td class="l"><span class="tag sample">sample</span></td><td class="l">The sample as shipped: annotation dispatcher + Dagger + SDK clients.</td></tr>
+<tr><td class="l"><span class="tag primed">primed</span></td><td class="l">The sample with SDK priming during init, <strong>on-demand (no SnapStart)</strong>. Shown next to <code>snapstart</code> below because priming is designed to be captured in the snapshot — on its own it only moves work earlier into init.</td></tr>
+<tr><td class="l"><span class="tag snapstart">snapstart</span></td><td class="l">The sample with Lambda SnapStart; priming runs before the snapshot is taken. Init column is Restore Duration. This is where priming pays off.</td></tr>
+</table>
+
+<h2>Full matrix (all percentiles, ms)</h2>
+<p class="small">Values from <code>results.json</code> (Logs Insights), rounded to whole ms. Init = Init Duration (on-demand) or Restore Duration (SnapStart). Last four columns = Init + first invoke. Variants ordered to pair <code>primed</code> with <code>snapstart</code>.</p>
+<table>
+<tr>
+  <th class="l">Variant</th><th>Mem</th><th>n</th>
+  <th>Init min</th><th>Init p50</th><th>Init p90</th><th>Init p99</th><th>Init max</th>
+  <th>E2E p50</th><th>p90</th><th>p99</th><th>max</th>
+</tr>
+<tr><td class="l"><span class="tag minimal">minimal</span></td><td>512</td><td>100</td><td>379</td><td>518</td><td>548</td><td>571</td><td>585</td><td>843</td><td>893</td><td>924</td><td>942</td></tr>
+<tr><td class="l"><span class="tag minimal">minimal</span></td><td>1024</td><td>100</td><td>369</td><td class="best">513</td><td>545</td><td>572</td><td>594</td><td class="best">669</td><td>703</td><td>737</td><td>751</td></tr>
+<tr><td class="l"><span class="tag plain">plain</span></td><td>512</td><td>100</td><td>1461</td><td>1909</td><td>2003</td><td>2049</td><td>2064</td><td>4754</td><td>4978</td><td>5028</td><td>5050</td></tr>
+<tr><td class="l"><span class="tag plain">plain</span></td><td>1024</td><td>100</td><td>1485</td><td>1877</td><td>1957</td><td>2082</td><td>2267</td><td>3213</td><td>3351</td><td>3569</td><td>3669</td></tr>
+<tr><td class="l"><span class="tag sample">sample</span></td><td>512</td><td>100</td><td>1615</td><td>1941</td><td>2029</td><td>2059</td><td>2105</td><td>4816</td><td>5003</td><td class="worst">5134</td><td class="worst">5171</td></tr>
+<tr><td class="l"><span class="tag sample">sample</span></td><td>1024</td><td>100</td><td>1447</td><td>1915</td><td>2011</td><td>2112</td><td>2266</td><td>3255</td><td>3388</td><td>3522</td><td>3656</td></tr>
+<tr><td class="l"><span class="tag primed">primed</span></td><td>512</td><td>100</td><td>1872</td><td>2626</td><td>2749</td><td>2836</td><td>2926</td><td>3255</td><td>3418</td><td>3519</td><td>3594</td></tr>
+<tr><td class="l"><span class="tag primed">primed</span></td><td>1024</td><td>99 *</td><td>1938</td><td>2592</td><td>2724</td><td>2972</td><td>2972</td><td>2946</td><td>3106</td><td>3347</td><td>3347</td></tr>
+<tr><td class="l"><span class="tag snapstart">snapstart</span></td><td>512</td><td>100</td><td>504</td><td>727</td><td>816</td><td>888</td><td>989</td><td>1787</td><td>1871</td><td>1987</td><td>2012</td></tr>
+<tr><td class="l"><span class="tag snapstart">snapstart</span></td><td>1024</td><td>100</td><td>502</td><td>749</td><td>829</td><td>912</td><td>1039</td><td>1514</td><td>1574</td><td>1606</td><td>1743</td></tr>
+</table>
+<p class="small">* <strong>primed 1024 MB: n = 99.</strong> One of the 100 invocations reused a warm execution environment (REPORT showed <code>Duration: 14.65 ms</code>, no Init Duration); the window has 99 <code>INIT_START</code> lines. The warm invocation is excluded because it isn't a cold start. All 100 invocations succeeded. See <code>NOTES.md</code>.</p>
+
+<h2>Init p50 at a glance</h2>
+<p class="small">Median init duration (ms). Shorter is better. Bars scaled to the slowest cell (primed 512 = 2626 ms).</p>
+<table>
+<tr><th class="l">Variant / Mem</th><th class="l" style="width:62%">Init p50 (ms)</th></tr>
+<tr><td class="l"><span class="tag minimal">minimal</span> 1024</td><td class="l"><div class="barwrap"><span class="bar" style="width:19.5%;background:#5f6b7a"></span><span>513</span></div></td></tr>
+<tr><td class="l"><span class="tag minimal">minimal</span> 512</td><td class="l"><div class="barwrap"><span class="bar" style="width:19.7%;background:#5f6b7a"></span><span>518</span></div></td></tr>
+<tr><td class="l"><span class="tag snapstart">snapstart</span> 512</td><td class="l"><div class="barwrap"><span class="bar" style="width:27.7%;background:#037f0c"></span><span>727</span></div></td></tr>
+<tr><td class="l"><span class="tag snapstart">snapstart</span> 1024</td><td class="l"><div class="barwrap"><span class="bar" style="width:28.5%;background:#037f0c"></span><span>749</span></div></td></tr>
+<tr><td class="l"><span class="tag plain">plain</span> 1024</td><td class="l"><div class="barwrap"><span class="bar" style="width:71.5%;background:#8a6d1f"></span><span>1877</span></div></td></tr>
+<tr><td class="l"><span class="tag plain">plain</span> 512</td><td class="l"><div class="barwrap"><span class="bar" style="width:72.7%;background:#8a6d1f"></span><span>1909</span></div></td></tr>
+<tr><td class="l"><span class="tag sample">sample</span> 1024</td><td class="l"><div class="barwrap"><span class="bar" style="width:72.9%;background:#b7740f"></span><span>1915</span></div></td></tr>
+<tr><td class="l"><span class="tag sample">sample</span> 512</td><td class="l"><div class="barwrap"><span class="bar" style="width:73.9%;background:#b7740f"></span><span>1941</span></div></td></tr>
+<tr><td class="l"><span class="tag primed">primed</span> 1024</td><td class="l"><div class="barwrap"><span class="bar" style="width:98.7%;background:#946cc9"></span><span>2592</span></div></td></tr>
+<tr><td class="l"><span class="tag primed">primed</span> 512</td><td class="l"><div class="barwrap"><span class="bar" style="width:100%;background:#946cc9"></span><span>2626</span></div></td></tr>
+</table>
+
+<h2>End-to-end p50 at a glance</h2>
+<p class="small">Init + first invoke, median (ms). This is the user-visible cold latency. Bars scaled to the slowest cell (sample 512 = 4816 ms).</p>
+<table>
+<tr><th class="l">Variant / Mem</th><th class="l" style="width:62%">End-to-end p50 (ms)</th></tr>
+<tr><td class="l"><span class="tag minimal">minimal</span> 1024</td><td class="l"><div class="barwrap"><span class="bar" style="width:13.9%;background:#5f6b7a"></span><span>669</span></div></td></tr>
+<tr><td class="l"><span class="tag minimal">minimal</span> 512</td><td class="l"><div class="barwrap"><span class="bar" style="width:17.5%;background:#5f6b7a"></span><span>843</span></div></td></tr>
+<tr><td class="l"><span class="tag snapstart">snapstart</span> 1024</td><td class="l"><div class="barwrap"><span class="bar" style="width:31.4%;background:#037f0c"></span><span>1514</span></div></td></tr>
+<tr><td class="l"><span class="tag snapstart">snapstart</span> 512</td><td class="l"><div class="barwrap"><span class="bar" style="width:37.1%;background:#037f0c"></span><span>1787</span></div></td></tr>
+<tr><td class="l"><span class="tag primed">primed</span> 1024</td><td class="l"><div class="barwrap"><span class="bar" style="width:61.2%;background:#946cc9"></span><span>2946</span></div></td></tr>
+<tr><td class="l"><span class="tag plain">plain</span> 1024</td><td class="l"><div class="barwrap"><span class="bar" style="width:66.7%;background:#8a6d1f"></span><span>3213</span></div></td></tr>
+<tr><td class="l"><span class="tag sample">sample</span> 1024</td><td class="l"><div class="barwrap"><span class="bar" style="width:67.6%;background:#b7740f"></span><span>3255</span></div></td></tr>
+<tr><td class="l"><span class="tag primed">primed</span> 512</td><td class="l"><div class="barwrap"><span class="bar" style="width:67.6%;background:#946cc9"></span><span>3255</span></div></td></tr>
+<tr><td class="l"><span class="tag plain">plain</span> 512</td><td class="l"><div class="barwrap"><span class="bar" style="width:98.7%;background:#8a6d1f"></span><span>4754</span></div></td></tr>
+<tr><td class="l"><span class="tag sample">sample</span> 512</td><td class="l"><div class="barwrap"><span class="bar" style="width:100%;background:#b7740f"></span><span>4816</span></div></td></tr>
+</table>
+
+<h2>Run integrity</h2>
+<p class="small">Every cell completed 100 successful invocations with zero errors (<code>cells.tsv</code>, <code>results.json</code>). A single Lambda runtime version served every cell. The only cold-start sample size below 100 is primed 1024 MB (99), explained above.</p>
+<table>
+<tr><th class="l">Variant</th><th class="l">Function</th><th>Mem</th><th>Invoke OK</th><th>Invoke error</th><th>Cold-start n</th></tr>
+<tr><td class="l"><span class="tag minimal">minimal</span></td><td class="l"><code>MinimalFunction-NsWEmmtWDyR1</code></td><td>512</td><td>100</td><td>0</td><td>100</td></tr>
+<tr><td class="l"><span class="tag minimal">minimal</span></td><td class="l"><code>MinimalFunction-NsWEmmtWDyR1</code></td><td>1024</td><td>100</td><td>0</td><td>100</td></tr>
+<tr><td class="l"><span class="tag plain">plain</span></td><td class="l"><code>PlainFunction-b7mukyB9xX82</code></td><td>512</td><td>100</td><td>0</td><td>100</td></tr>
+<tr><td class="l"><span class="tag plain">plain</span></td><td class="l"><code>PlainFunction-b7mukyB9xX82</code></td><td>1024</td><td>100</td><td>0</td><td>100</td></tr>
+<tr><td class="l"><span class="tag primed">primed</span></td><td class="l"><code>SamplePrimedFunction-UNR375NNQ9vZ</code></td><td>512</td><td>100</td><td>0</td><td>100</td></tr>
+<tr><td class="l"><span class="tag primed">primed</span></td><td class="l"><code>SamplePrimedFunction-UNR375NNQ9vZ</code></td><td>1024</td><td>100</td><td>0</td><td>99</td></tr>
+<tr><td class="l"><span class="tag sample">sample</span></td><td class="l"><code>SampleFunction-z2lZOFhtO5UA</code></td><td>512</td><td>100</td><td>0</td><td>100</td></tr>
+<tr><td class="l"><span class="tag sample">sample</span></td><td class="l"><code>SampleFunction-z2lZOFhtO5UA</code></td><td>1024</td><td>100</td><td>0</td><td>100</td></tr>
+<tr><td class="l"><span class="tag snapstart">snapstart</span></td><td class="l"><code>SnapStartFunction-9cBXIFgsgQyB</code></td><td>512</td><td>100</td><td>0</td><td>100</td></tr>
+<tr><td class="l"><span class="tag snapstart">snapstart</span></td><td class="l"><code>SnapStartFunction-9cBXIFgsgQyB</code></td><td>1024</td><td>100</td><td>0</td><td>100</td></tr>
+</table>
+
+<h2>Reading of the numbers</h2>
+<ul>
+<li><strong>The dispatcher adds negligible overhead over hand-wiring.</strong> At the same memory, <code>sample</code> (annotation dispatcher + Dagger) tracks <code>plain</code> (hand-wired switch) closely: the init p50 gap is ~33 ms at 512 MB and ~38 ms at 1024 MB — smaller than the plain handler's own p50-to-p90 spread. The convenience of annotation routing is effectively free at cold start.</li>
+<li><strong>SnapStart is the biggest win for the shipped sample.</strong> It cuts end-to-end p50 from ~3255 ms (1024 MB) to ~1514 ms, and from ~4816 ms (512 MB) to ~1787 ms, because restore replaces cold JVM + Dagger + SDK init.</li>
+<li><strong>On-demand priming (<code>primed</code>) does not pay off by itself.</strong> It has the highest init p50 (priming front-loads SDK work into init) and only modestly better end-to-end than unprimed <code>sample</code>. Priming is intended to be captured in the SnapStart snapshot — compare <code>primed</code> to <code>snapstart</code>, not to <code>sample</code>.</li>
+<li><strong>More memory helps on-demand.</strong> The <code>sample</code>/<code>plain</code> end-to-end p50 drops ~1500 ms going 512→1024 MB, since more memory also means more CPU during init.</li>
+<li><strong><code>minimal</code> is the framework floor</strong> (~513–518 ms init), showing how much of a cold start is SDK client construction rather than the dispatcher itself.</li>
+</ul>
+
+<h2>Methodology &amp; caveats</h2>
+<div class="callout">
+<ul class="caveats">
+<li><strong>Workload.</strong> Each cold start is one <code>GET /api/products</code>, which runs a DynamoDB <code>Scan</code>. The benchmark table is <strong>empty</strong>, so the end-to-end figures include a real DynamoDB round trip but no item marshalling or payload transfer. A populated table would add scan and serialization time on top.</li>
+<li><strong>Cold starts only.</strong> Every number here is a first request into a fresh execution environment (or a SnapStart restore). Warm requests reuse an initialized environment and are far faster; they are not measured here.</li>
+<li><strong>X-Ray tracing is Active.</strong> Tracing adds init and per-invoke overhead; these figures include it. A tracing-off configuration would be somewhat faster.</li>
+<li><strong>Single run, single Region, single architecture.</strong> One run on 2026-10-03, us-east-1, x86_64 only. arm64/Graviton was not measured. n = 100 cold starts per cell (99 for primed 1024 MB).</li>
+<li><strong>Variants run concurrently.</strong> The five variants use separate Lambda functions and were driven in parallel. A single Lambda runtime version served every cell (<code>results.json</code>).</li>
+<li><strong>Two sampling methods.</strong> On-demand variants: one configuration update per cold start, so each sample is an isolated fresh environment. SnapStart: one published version per round, then a burst of 25 concurrent invocations of that version; each restore is one sample.</li>
+<li><strong>Precision.</strong> Table values are rounded from <code>results.json</code> (computed by Logs Insights). p50 values recomputed independently from <code>raw/*.csv</code> match within 0.3%.</li>
+</ul>
+</div>
+
+<p class="small">Generated from <code>results.json</code>, <code>metadata.json</code>, <code>cells.tsv</code>, and <code>NOTES.md</code> in this folder. Code at commit <code>d1fe0b6</code> (0 uncommitted files) — the published sample. Init = Init Duration (on-demand) or Restore Duration (SnapStart), milliseconds.</p>
+</body></html>
