@@ -24,18 +24,20 @@ import java.util.UUID;
 @Singleton
 public class ProductRepository {
 
-    private final String tableName;
-    private final DynamoDbEnhancedClient dynamoDbClient;
+    // Building a bean table schema uses reflection and is expensive, so do it once per
+    // execution environment, during initialization, rather than on every request.
+    private static final TableSchema<Product> PRODUCT_SCHEMA = TableSchema.fromBean(Product.class);
+
+    private final DynamoDbTable<Product> table;
 
     @Inject
     public ProductRepository(DynamoDbEnhancedClient dynamoDbClient,
                              @Named("productTable") String tableName) {
-        this.dynamoDbClient = dynamoDbClient;
-        this.tableName = tableName;
+        this.table = dynamoDbClient.table(tableName, PRODUCT_SCHEMA);
     }
 
     private DynamoDbTable<Product> getTable() {
-        return dynamoDbClient.table(tableName, TableSchema.fromBean(Product.class));
+        return table;
     }
 
     public List<Product> findAll() {

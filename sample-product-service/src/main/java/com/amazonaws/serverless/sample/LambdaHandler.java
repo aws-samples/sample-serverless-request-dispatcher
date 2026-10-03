@@ -7,6 +7,7 @@ import com.amazonaws.serverless.proxy.model.AwsProxyRequest;
 import com.amazonaws.serverless.proxy.model.AwsProxyResponse;
 import com.amazonaws.serverless.proxy.model.Headers;
 import com.amazonaws.serverless.sample.config.AppComponent;
+import com.amazonaws.serverless.sample.config.SdkPriming;
 import com.amazonaws.serverless.sample.config.DaggerAppComponent;
 import com.amazonaws.serverless.requestdispatcher.annotation.RouteException;
 import com.amazonaws.serverless.requestdispatcher.annotation.FrontControllerRequestDispatcher;
@@ -28,6 +29,7 @@ public class LambdaHandler implements RequestHandler<AwsProxyRequest, AwsProxyRe
 
     public LambdaHandler() {
         // Initialize Dagger component
+        SdkPriming.prime();
         AppComponent component = DaggerAppComponent.create();
         this.requestDispatcher = component.requestDispatcher();
     }

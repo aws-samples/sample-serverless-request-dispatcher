@@ -89,7 +89,8 @@ This removes all resources created by the template including the KMS key, Dynamo
     │   ├── AppRequestDispatcher.java
     │   ├── DynamoDbConfig.java
     │   ├── LambdaCredentials.java
-    │   └── S3Config.java
+    │   ├── S3Config.java
+    │   └── SdkPriming.java
     └── benchmark/            # Comparison handlers used only by ../benchmarks
         ├── MinimalHandler.java
         └── PlainHandler.java

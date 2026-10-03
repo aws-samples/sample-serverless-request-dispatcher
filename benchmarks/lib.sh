@@ -29,8 +29,9 @@ variant_output_key() {
     minimal)   echo MinimalFunctionName ;;
     plain)     echo PlainFunctionName ;;
     sample)    echo SampleFunctionName ;;
+    primed)    echo SamplePrimedFunctionName ;;
     snapstart) echo SnapStartFunctionName ;;
-    *) die "unknown variant '$1' (expected minimal, plain, sample, snapstart)" ;;
+    *) die "unknown variant '$1' (expected minimal, plain, sample, primed, snapstart)" ;;
   esac
 }
 

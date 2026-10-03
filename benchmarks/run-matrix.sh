@@ -6,7 +6,7 @@
 #
 # Usage:
 #   ./run-matrix.sh --stack <name> [--region <region>] [--count 100]
-#                   [--variants "minimal plain sample snapstart"]
+#                   [--variants "minimal plain sample primed snapstart"]
 #                   [--runtimes "java21"] [--memory "512 1024"]
 #                   [--snapstart-burst 25] [--sequential] [--out <dir>]
 #
@@ -20,7 +20,7 @@ source "$(dirname "$0")/lib.sh"
 STACK=""
 REGION="${AWS_REGION:-${AWS_DEFAULT_REGION:-}}"
 COUNT=100
-VARIANTS="minimal plain sample snapstart"
+VARIANTS="minimal plain sample primed snapstart"
 RUNTIMES="java21"
 MEMORY="512 1024"
 SNAPSTART_BURST=25

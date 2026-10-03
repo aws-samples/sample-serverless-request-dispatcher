@@ -21,7 +21,7 @@ Java teams often want annotated controllers for a REST API served by a single La
 
 This library provides the annotation model for routing, while Dagger resolves the dependency graph at compile time and generates plain constructor calls. At cold start the dispatcher scans the registered controllers once and builds an O(1) route map; each request is a single map lookup.
 
-To measure what this costs in your own account, use the [cold start benchmark](benchmarks/README.md). It deploys the sample next to a hand-wired `switch` baseline and a minimal controller, and reports Init Duration percentiles for each.
+To measure what this costs in your own account, use the [cold start benchmark](benchmarks/README.md). It deploys the sample next to a hand-wired `switch` baseline and a minimal controller, with and without SDK priming and SnapStart, and reports cold start percentiles for each.
 
 ## Getting Started
 
@@ -453,6 +453,7 @@ Authentication, authorization, CORS, and throttling are not configured; add them
 **Memory and SnapStart.**
 - **Memory:** Lambda allocates CPU in proportion to memory, so memory affects initialization time. Start at 512 MB and tune with [AWS Lambda Power Tuning](https://github.com/alexcasalboni/aws-lambda-power-tuning).
 - **SnapStart:** [Lambda SnapStart](https://docs.aws.amazon.com/lambda/latest/dg/snapstart.html) (`EnableSnapStart=true`) restores a snapshot of the initialized environment, which includes the SDK clients built during init. The routing layer opens no connections or files during initialization.
+- **SDK priming:** set `SDK_PRIMING=true` to warm up the DynamoDB and S3 clients during init with `SdkWarmUp` (canned responses, no network calls). The sample template turns it on when `EnableSnapStart=true`, so the warm-up is captured in the snapshot. On demand it moves first-request work into init, so measure before you enable it.
 - **Credentials:** `LambdaCredentials` uses the container credentials endpoint when Lambda advertises it and the credential environment variables otherwise, so the same code can run on demand and with SnapStart.
 - **Before enabling SnapStart,** review [SnapStart best practices](https://docs.aws.amazon.com/lambda/latest/dg/snapstart-best-practices.html) on state captured in the snapshot.
 
@@ -497,7 +498,7 @@ curl -X POST http://localhost:3000/api/products \
 
 ## Measuring Cold Starts
 
-The [benchmarks](benchmarks/README.md) folder contains a separate SAM stack and scripts that measure cold starts of four variants built from the same JAR — a minimal controller with no AWS SDK clients, a hand-wired `switch` baseline, the sample as shipped, and the sample with SnapStart — across Java runtimes and memory sizes. Results are written as Markdown, JSON, and raw CSV so they can be recomputed. Deploy the benchmark stack only in a non-production test account.
+The [benchmarks](benchmarks/README.md) folder contains a separate SAM stack and scripts that measure cold starts of five variants built from the same JAR — a minimal controller with no AWS SDK clients, a hand-wired `switch` baseline, the sample as shipped, the sample with SDK priming, and the sample with SnapStart — across Java runtimes and memory sizes. Results are written as Markdown, JSON, and raw CSV so they can be recomputed. Deploy the benchmark stack only in a non-production test account.
 
 ## Cost and Cleanup
 

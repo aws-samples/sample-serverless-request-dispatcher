@@ -2,7 +2,7 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
   Cold start benchmark stack for the Serverless Request Dispatcher sample.
-  Deploys four variants of the same function from one JAR so they can be
+  Deploys five variants of the same function from one JAR so they can be
   measured side by side. Deploy only in a non-production test account.
 
 Parameters:
@@ -28,6 +28,7 @@ Globals:
       Variables:
         PRODUCT_TABLE: !Ref ProductTable
         PRODUCT_IMAGES_BUCKET: !Ref ProductImagesBucket
+        SDK_PRIMING: "false"
     Tags:
       Project: serverless-request-dispatcher-benchmark
       Environment: benchmark
@@ -99,13 +100,32 @@ Resources:
             Path: /api/products
             Method: GET
 
-  # (d) The sample with SnapStart
+  # (d) The sample with SDK priming during init (on-demand)
+  SamplePrimedFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: com.amazonaws.serverless.sample.LambdaHandler::handleRequest
+      LoggingConfig:
+        LogGroup: !Ref SamplePrimedLogGroup
+      Environment:
+        Variables:
+          SDK_PRIMING: "true"
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ProductTable
+        - S3CrudPolicy:
+            BucketName: !Ref ProductImagesBucket
+
+  # (e) The sample with SnapStart; priming runs before the snapshot is taken
   SnapStartFunction:
     Type: AWS::Serverless::Function
     Properties:
       Handler: com.amazonaws.serverless.sample.LambdaHandler::handleRequest
       LoggingConfig:
         LogGroup: !Ref SnapStartLogGroup
+      Environment:
+        Variables:
+          SDK_PRIMING: "true"
       AutoPublishAlias: live
       SnapStart:
         ApplyOn: PublishedVersions
@@ -145,6 +165,11 @@ Resources:
     Properties:
       LogGroupName: !Sub "/benchmarks/${AWS::StackName}/sample"
       RetentionInDays: 14
+  SamplePrimedLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/benchmarks/${AWS::StackName}/primed"
+      RetentionInDays: 14
   SnapStartLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
@@ -158,6 +183,8 @@ Outputs:
     Value: !Ref PlainFunction
   SampleFunctionName:
     Value: !Ref SampleFunction
+  SamplePrimedFunctionName:
+    Value: !Ref SamplePrimedFunction
   SnapStartFunctionName:
     Value: !Ref SnapStartFunction
   SampleApiUrl:

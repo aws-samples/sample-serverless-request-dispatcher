@@ -9,6 +9,7 @@ import com.amazonaws.serverless.requestdispatcher.annotation.RouteException;
 import com.amazonaws.serverless.sample.LambdaHandler;
 import com.amazonaws.serverless.sample.config.DynamoDbConfig;
 import com.amazonaws.serverless.sample.config.S3Config;
+import com.amazonaws.serverless.sample.config.SdkPriming;
 import com.amazonaws.serverless.sample.controller.ProductController;
 import com.amazonaws.serverless.sample.repository.ProductRepository;
 import com.amazonaws.serverless.sample.service.ProductService;
@@ -30,6 +31,7 @@ public class PlainHandler implements RequestHandler<AwsProxyRequest, AwsProxyRes
     private final ProductController controller;
 
     public PlainHandler() {
+        SdkPriming.prime();
         String table = Objects.requireNonNull(System.getenv("PRODUCT_TABLE"),
                 "PRODUCT_TABLE environment variable must be set");
         String bucket = Objects.requireNonNull(System.getenv("PRODUCT_IMAGES_BUCKET"),

@@ -15,10 +15,12 @@ their methodology.
 | `minimal` | `benchmark.MinimalHandler` | Dispatcher + Dagger with one controller and **no AWS SDK clients**. The cost of the routing layer itself. |
 | `plain` | `benchmark.PlainHandler` | The **same controller, services, and SDK clients**, wired by hand and dispatched with a `switch`. The baseline. |
 | `sample` | `LambdaHandler` | The sample as shipped: dispatcher + Dagger + DynamoDB and S3 clients. |
-| `snapstart` | `LambdaHandler` | The sample with Lambda SnapStart on published versions. |
+| `primed` | `LambdaHandler` | The sample with `SDK_PRIMING=true`: the SDK clients are warmed up during init with canned responses. |
+| `snapstart` | `LambdaHandler` | The sample with Lambda SnapStart on published versions and `SDK_PRIMING=true`, so the warm-up is captured in the snapshot. |
 
 - **`sample` minus `plain`:** what the dispatcher and Dagger add.
 - **`sample` minus `minimal`:** how much creating the SDK clients contributes.
+- **`primed` compared with `sample`:** priming moves the first-request SDK work into init. Compare "Init + first invoke", not Init alone.
 
 For each variant, the matrix runs every combination of runtime (default `java21`, the
 runtime the sample targets) and memory (default `512 1024` MB). Pass
@@ -62,7 +64,7 @@ at least 5 minutes apart, and report each run.
   call `lambda:UpdateFunctionConfiguration`, `lambda:PublishVersion`,
   `lambda:InvokeFunction`, and `logs:StartQuery` / `logs:GetQueryResults`.
 - **Concurrency:** account concurrency of at least 30 for the default SnapStart
-  burst of 25 plus three on-demand variants. Lower `--snapstart-burst` on accounts
+  burst of 25 plus four on-demand variants. Lower `--snapstart-burst` on accounts
   with a low limit.
 
 ## Run it
@@ -78,7 +80,7 @@ sam deploy --template-file benchmarks/template.yaml \
   --capabilities CAPABILITY_IAM --resolve-s3 \
   --parameter-overrides Architecture=x86_64 TracingMode=Active
 
-# 3. Isolated cold starts: 4 variants x 2 memory sizes on java21, 100 each
+# 3. Isolated cold starts: 5 variants x 2 memory sizes on java21, 100 each
 benchmarks/run-matrix.sh --stack request-dispatcher-benchmark --region us-east-1
 
 # 4. Optional: load-driven cold starts (repeat 3 times, 5+ minutes apart)

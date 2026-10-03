@@ -218,6 +218,8 @@ Resources:
         Variables:
           PRODUCT_TABLE: !Ref ProductTable
           PRODUCT_IMAGES_BUCKET: !Ref ProductImagesBucket
+          # Warm up the SDK clients during init; captured in the snapshot with SnapStart
+          SDK_PRIMING: !If [UseSnapStart, "true", "false"]
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref ProductTable
