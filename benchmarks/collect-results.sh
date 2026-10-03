@@ -32,6 +32,18 @@ while IFS=$'\t' read -r variant fn runtime memory start end ok err <&3; do
   log "Querying $cell ($log_group)"
 
   stats=$(run_insights_query "$log_group" "$start" "$((end + 5))" "$BENCH_DIR/queries/cold-start-stats.query")
+  # Logs Insights can lag ingestion by minutes. Every on-demand invocation in a cell is a
+  # cold start, so retry until the count matches the successful invocations. SnapStart
+  # bursts can legitimately reuse environments, and load cells have no expected count.
+  if [[ "$variant" != snapstart && "$variant" != load-* ]]; then
+    attempt=1
+    while [[ "$(echo "$stats" | jq -r '.[0].n // 0')" -lt "$ok" && $attempt -le 6 ]]; do
+      log "$cell: $(echo "$stats" | jq -r '.[0].n // 0') of $ok cold starts visible yet; waiting 30 s (attempt $attempt/6)"
+      sleep 30
+      stats=$(run_insights_query "$log_group" "$start" "$((end + 5))" "$BENCH_DIR/queries/cold-start-stats.query")
+      attempt=$((attempt + 1))
+    done
+  fi
   runtime_arns=$(run_insights_query "$log_group" "$start" "$((end + 5))" "$BENCH_DIR/queries/runtime-version.query")
   run_insights_query "$log_group" "$start" "$((end + 5))" "$BENCH_DIR/queries/cold-start-raw.query" \
     | jq -r '(.[0] // {} | keys_unsorted) as $k | if ($k | length) == 0 then empty else ($k | @csv), (.[] | [.[$k[]]] | @csv) end' \
