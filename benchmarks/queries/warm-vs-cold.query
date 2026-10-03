@@ -1,0 +1,8 @@
+filter @type = "REPORT"
+| parse @message /Restore Duration: (?<restoreDuration>[0-9.]+) ms/
+| stats count(*) as invocations,
+        pct(@duration + coalesce(@initDuration, 0) + coalesce(restoreDuration, 0), 50) as p50,
+        pct(@duration + coalesce(@initDuration, 0) + coalesce(restoreDuration, 0), 90) as p90,
+        pct(@duration + coalesce(@initDuration, 0) + coalesce(restoreDuration, 0), 99) as p99,
+        max(@duration + coalesce(@initDuration, 0) + coalesce(restoreDuration, 0)) as max
+  by (ispresent(@initDuration) or ispresent(restoreDuration)) as coldStart

@@ -1,0 +1,14 @@
+# Artillery load test for load-driven (burst) cold starts.
+# The target is passed on the command line by run-load.sh:
+#   artillery run --target "$API_URL" load-test.yml
+config:
+  target: "https://example.execute-api.us-east-1.amazonaws.com/Prod"
+  phases:
+    - name: sustained
+      duration: 600
+      arrivalRate: 50
+scenarios:
+  - name: list-products
+    flow:
+      - get:
+          url: "/api/products"

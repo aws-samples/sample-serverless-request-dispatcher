@@ -1,0 +1,7 @@
+{
+  "httpMethod": "GET",
+  "resource": "/api/products",
+  "path": "/api/products",
+  "headers": {"Accept": "application/json"},
+  "requestContext": {"stage": "Prod"}
+}

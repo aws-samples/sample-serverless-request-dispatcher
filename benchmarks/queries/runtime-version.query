@@ -1,0 +1,3 @@
+filter @message like /INIT_START/
+| parse @message /Runtime Version ARN: (?<runtimeVersionArn>\S+)/
+| stats count(*) as inits by runtimeVersionArn

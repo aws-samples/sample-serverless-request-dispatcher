@@ -174,4 +174,16 @@ public class RequestDispatcherTest {
             return "duplicate";
         }
     }
+
+    @Test
+    public void testUnsupportedHttpMethodIsNotFound() {
+        // OPTIONS and HEAD have no route map; they must map to 404, not a NullPointerException
+        assertThrows(RouteException.class, () -> dispatcher.invoke(buildRequest("OPTIONS", "/items")));
+        assertThrows(RouteException.class, () -> dispatcher.invoke(buildRequest("HEAD", "/items")));
+    }
+
+    @Test
+    public void testMissingHttpMethodIsNotFound() {
+        assertThrows(RouteException.class, () -> dispatcher.invoke(buildRequest(null, "/items")));
+    }
 }

@@ -1,0 +1,10 @@
+filter @type = "REPORT"
+| parse @message /Restore Duration: (?<restoreDuration>[0-9.]+) ms/
+| filter ispresent(@initDuration) or ispresent(restoreDuration)
+| fields coalesce(@initDuration, restoreDuration) as init,
+         @duration + coalesce(@initDuration, 0) + coalesce(restoreDuration, 0) as total
+| stats count(*) as n,
+        min(init) as initMin, pct(init, 50) as initP50, pct(init, 90) as initP90,
+        pct(init, 99) as initP99, max(init) as initMax,
+        pct(total, 50) as totalP50, pct(total, 90) as totalP90,
+        pct(total, 99) as totalP99, max(total) as totalMax

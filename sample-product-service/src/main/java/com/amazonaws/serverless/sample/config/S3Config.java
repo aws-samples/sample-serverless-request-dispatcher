@@ -3,21 +3,20 @@
 
 package com.amazonaws.serverless.sample.config;
 
-import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
 import software.amazon.awssdk.services.s3.S3Client;
 
 import javax.inject.Singleton;
 
 /**
  * Configuration class for S3 client setup.
- * Uses environment variable credentials, automatically available in Lambda.
+ * Uses the execution role credentials supplied by Lambda; see {@link LambdaCredentials}.
  */
 @Singleton
 public class S3Config {
 
     public S3Client s3Client() {
         return S3Client.builder()
-                .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
+                .credentialsProvider(LambdaCredentials.provider())
                 .build();
     }
 }

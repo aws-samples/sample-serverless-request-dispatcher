@@ -2,6 +2,16 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: Product Service Sample with DynamoDB and S3
 
+Parameters:
+  EnableSnapStart:
+    Type: String
+    AllowedValues: ["true", "false"]
+    Default: "false"
+    Description: Enable Lambda SnapStart on published versions of the function
+
+Conditions:
+  UseSnapStart: !Equals [!Ref EnableSnapStart, "true"]
+
 Globals:
   Function:
     Timeout: 30
@@ -191,6 +201,10 @@ Resources:
     Properties:
       CodeUri: target/sample-product-service.jar
       Handler: com.amazonaws.serverless.sample.LambdaHandler::handleRequest
+      # API Gateway invokes the "live" alias; SnapStart applies only to published versions
+      AutoPublishAlias: live
+      SnapStart:
+        ApplyOn: !If [UseSnapStart, PublishedVersions, None]
       KmsKeyArn: !GetAtt EncryptionKey.Arn
       Tracing: Active
       DeadLetterQueue:

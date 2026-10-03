@@ -127,4 +127,13 @@ public class LambdaHandlerTest {
         assertEquals(500, response.getStatusCode());
         assertTrue(response.getBody().contains("Internal server error"));
     }
+
+    // --- Error bodies are valid JSON even when the message contains quotes ---
+
+    @Test
+    public void testErrorMessageIsJsonEscaped() {
+        AwsProxyResponse response = LambdaHandler.errorResponse(400, "name \"x\" is invalid\n");
+        com.google.gson.JsonObject body = com.google.gson.JsonParser.parseString(response.getBody()).getAsJsonObject();
+        assertEquals("name \"x\" is invalid\n", body.get("error").getAsString());
+    }
 }

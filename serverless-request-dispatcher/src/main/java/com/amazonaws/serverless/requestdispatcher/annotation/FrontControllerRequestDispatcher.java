@@ -105,9 +105,11 @@ public abstract class FrontControllerRequestDispatcher {
 		logger.fine(() -> "Dispatching " + httpMethod + " " + resourcePath);
 		logger.finest(() -> "Registered routes: " + mappings);
 
-		if (mappings.get(httpMethod).containsKey(resourcePath)) {
+		// Methods without a route map (OPTIONS, HEAD, or a missing method) are "not found", not a crash
+		final RouteMeta routeMeta = mappings.getOrDefault(httpMethod, Map.of()).get(resourcePath);
 
-			final RouteMeta routeMeta = mappings.get(httpMethod).get(resourcePath);
+		if (routeMeta != null) {
+
 			final Method method = routeMeta.getMethod();
 
 			return noParameters(method) 

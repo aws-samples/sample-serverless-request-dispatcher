@@ -1,0 +1,168 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Cold start benchmark stack for the Serverless Request Dispatcher sample.
+  Deploys four variants of the same function from one JAR so they can be
+  measured side by side. Deploy only in a non-production test account.
+
+Parameters:
+  Architecture:
+    Type: String
+    AllowedValues: [x86_64, arm64]
+    Default: x86_64
+  TracingMode:
+    Type: String
+    AllowedValues: [Active, PassThrough]
+    Default: Active
+    Description: Active matches the shipped sample (X-Ray tracing on)
+
+Globals:
+  Function:
+    CodeUri: ../sample-product-service/target/sample-product-service.jar
+    Runtime: java21
+    MemorySize: 512
+    Timeout: 30
+    Architectures: [!Ref Architecture]
+    Tracing: !Ref TracingMode
+    Environment:
+      Variables:
+        PRODUCT_TABLE: !Ref ProductTable
+        PRODUCT_IMAGES_BUCKET: !Ref ProductImagesBucket
+    Tags:
+      Project: serverless-request-dispatcher-benchmark
+      Environment: benchmark
+
+Resources:
+  ProductTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      SSESpecification:
+        SSEEnabled: true
+
+  ProductImagesBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  # (a) Dispatcher + Dagger, no AWS SDK clients
+  MinimalFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: com.amazonaws.serverless.sample.benchmark.MinimalHandler::handleRequest
+      LoggingConfig:
+        LogGroup: !Ref MinimalLogGroup
+
+  # (b) Same controller and SDK clients, wired by hand, switch dispatch
+  PlainFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: com.amazonaws.serverless.sample.benchmark.PlainHandler::handleRequest
+      LoggingConfig:
+        LogGroup: !Ref PlainLogGroup
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ProductTable
+        - S3CrudPolicy:
+            BucketName: !Ref ProductImagesBucket
+
+  # (c) The sample as shipped
+  SampleFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: com.amazonaws.serverless.sample.LambdaHandler::handleRequest
+      LoggingConfig:
+        LogGroup: !Ref SampleLogGroup
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ProductTable
+        - S3CrudPolicy:
+            BucketName: !Ref ProductImagesBucket
+      Events:
+        ListProducts:
+          Type: Api
+          Properties:
+            Path: /api/products
+            Method: GET
+
+  # (d) The sample with SnapStart
+  SnapStartFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: com.amazonaws.serverless.sample.LambdaHandler::handleRequest
+      LoggingConfig:
+        LogGroup: !Ref SnapStartLogGroup
+      AutoPublishAlias: live
+      SnapStart:
+        ApplyOn: PublishedVersions
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ProductTable
+        - S3CrudPolicy:
+            BucketName: !Ref ProductImagesBucket
+      Events:
+        ListProducts:
+          Type: Api
+          Properties:
+            Path: /api/products
+            Method: GET
+            RestApiId: !Ref SnapStartApi
+
+  SnapStartApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+
+  # Named log groups, created before the functions so SnapStart's publish-time init
+  # cannot race CloudFormation. Logs expire after 14 days and are deleted with the
+  # stack, so collect results before 'sam delete'.
+  MinimalLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/benchmarks/${AWS::StackName}/minimal"
+      RetentionInDays: 14
+  PlainLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/benchmarks/${AWS::StackName}/plain"
+      RetentionInDays: 14
+  SampleLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/benchmarks/${AWS::StackName}/sample"
+      RetentionInDays: 14
+  SnapStartLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/benchmarks/${AWS::StackName}/snapstart"
+      RetentionInDays: 14
+
+Outputs:
+  MinimalFunctionName:
+    Value: !Ref MinimalFunction
+  PlainFunctionName:
+    Value: !Ref PlainFunction
+  SampleFunctionName:
+    Value: !Ref SampleFunction
+  SnapStartFunctionName:
+    Value: !Ref SnapStartFunction
+  SampleApiUrl:
+    Description: Load-test target for the on-demand sample
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod"
+  SnapStartApiUrl:
+    Description: Load-test target for the SnapStart sample (invokes the live alias)
+    Value: !Sub "https://${SnapStartApi}.execute-api.${AWS::Region}.amazonaws.com/Prod"

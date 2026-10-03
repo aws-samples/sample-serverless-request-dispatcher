@@ -11,7 +11,7 @@
 
     <name>Serverless Request Dispatcher</name>
     <description>A lightweight routing framework for AWS Lambda with Spring Boot-style annotations and compile-time DI via Dagger</description>
-    <url>https://github.com/aws-samples/serverless-request-dispatcher</url>
+    <url>https://github.com/aws-samples/sample-serverless-request-dispatcher</url>
 
     <licenses>
         <license>
@@ -21,9 +21,9 @@
     </licenses>
 
     <scm>
-        <connection>scm:git:git://github.com/aws-samples/serverless-request-dispatcher.git</connection>
-        <developerConnection>scm:git:ssh://github.com:aws-samples/serverless-request-dispatcher.git</developerConnection>
-        <url>https://github.com/aws-samples/serverless-request-dispatcher/tree/main</url>
+        <connection>scm:git:git://github.com/aws-samples/sample-serverless-request-dispatcher.git</connection>
+        <developerConnection>scm:git:ssh://github.com:aws-samples/sample-serverless-request-dispatcher.git</developerConnection>
+        <url>https://github.com/aws-samples/sample-serverless-request-dispatcher/tree/main</url>
     </scm>
 
     <properties>
@@ -31,7 +31,7 @@
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <dagger.version>2.60.1</dagger.version>
-        <lombok.version>1.18.30</lombok.version>
+        <lombok.version>1.18.48</lombok.version>
     </properties>
 
     <dependencies>

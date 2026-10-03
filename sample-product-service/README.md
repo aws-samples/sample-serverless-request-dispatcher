@@ -67,7 +67,7 @@ To avoid ongoing charges, delete the stack:
 sam delete --stack-name <your-stack-name>
 ```
 
-This removes all resources created by the template including the KMS key, DynamoDB table, S3 buckets, and Lambda function.
+This removes all resources created by the template including the KMS key, DynamoDB table, S3 buckets, and Lambda function. The buckets have versioning and Object Lock enabled, so delete all object versions from them first if they contain any; CloudFormation can't delete a bucket that isn't empty.
 
 ## Structure
 
@@ -83,12 +83,16 @@ This removes all resources created by the template including the KMS key, Dynamo
     │   └── S3StorageService.java
     ├── repository/ProductRepository.java
     ├── model/Product.java
-    └── config/
-        ├── AppComponent.java
-        ├── AppModule.java
-        ├── AppRequestDispatcher.java
-        ├── DynamoDbConfig.java
-        └── S3Config.java
+    ├── config/
+    │   ├── AppComponent.java
+    │   ├── AppModule.java
+    │   ├── AppRequestDispatcher.java
+    │   ├── DynamoDbConfig.java
+    │   ├── LambdaCredentials.java
+    │   └── S3Config.java
+    └── benchmark/            # Comparison handlers used only by ../benchmarks
+        ├── MinimalHandler.java
+        └── PlainHandler.java
 ```
 
 ## Creating a New Microservice From This Template
@@ -98,5 +102,6 @@ This removes all resources created by the template including the KMS key, Dynamo
 3. Replace `ProductController` with your own controllers
 4. Update `AppModule` to provide your controllers
 5. Update `template.yaml` with your routes
+6. Delete the `benchmark` package if you don't need the cold start comparison
 
 See the [root README](../README.md) for the full walkthrough.

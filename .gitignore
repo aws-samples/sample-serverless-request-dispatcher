@@ -38,3 +38,6 @@ samconfig.toml
 # Logs
 *.log
 build.log
+
+# Local AWS Prescriptive Guidance drafts (not part of the sample)
+/guide*

@@ -1,0 +1,7 @@
+filter @type = "REPORT"
+| parse @message /Restore Duration: (?<restoreDuration>[0-9.]+) ms/
+| filter ispresent(@initDuration) or ispresent(restoreDuration)
+| fields @timestamp, @requestId, @initDuration, restoreDuration, @duration,
+         @billedDuration, @memorySize, @maxMemoryUsed
+| sort @timestamp asc
+| limit 10000

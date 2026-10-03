@@ -17,9 +17,9 @@
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <dagger.version>2.60.1</dagger.version>
-        <lombok.version>1.18.30</lombok.version>
-        <awssdk.version>2.31.10</awssdk.version>
-        <netty.version>4.1.132.Final</netty.version>
+        <lombok.version>1.18.48</lombok.version>
+        <awssdk.version>2.55.10</awssdk.version>
+        <netty.version>4.1.138.Final</netty.version>
         <serverless.request.dispatcher.version>1.0.0</serverless.request.dispatcher.version>
     </properties>
 
@@ -54,8 +54,7 @@
             2. A project-specific file-based repository declared in <repositories>
             3. A remote repository you publish to (AWS CodeArtifact, GitHub Packages)
 
-            Options 2 and 3, with commands and POM snippets, are documented in
-            guide/guide.md — "Notes: choosing a dependency resolution strategy".
+            Options 2 and 3 need a matching <repositories> entry in this POM.
 
             Brings in com.amazonaws.serverless:aws-serverless-java-container-core
             transitively, which supplies AwsProxyRequest / AwsProxyResponse.
@@ -92,7 +91,7 @@
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
-            <version>2.10.1</version>
+            <version>2.14.0</version>
         </dependency>
 
         <!-- AWS DynamoDB Enhanced Client -->
