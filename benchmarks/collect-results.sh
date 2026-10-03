@@ -31,7 +31,14 @@ while IFS=$'\t' read -r variant fn runtime memory start end ok err <&3; do
   cell="$variant-$runtime-${memory}mb"
   log "Querying $cell ($log_group)"
 
-  stats=$(run_insights_query "$log_group" "$start" "$((end + 5))" "$BENCH_DIR/queries/cold-start-stats.query")
+  # Cell time windows are whole seconds, so back-to-back cells share a boundary second.
+  # Restrict the REPORT queries to this cell's memory size so a neighbor's record can't leak in.
+  scoped="$(mktemp -d)"
+  for qf in cold-start-stats cold-start-raw; do
+    sed "1s/\$/ and @memorySize = ${memory}000000/" "$BENCH_DIR/queries/$qf.query" > "$scoped/$qf.query"
+  done
+
+  stats=$(run_insights_query "$log_group" "$start" "$((end + 5))" "$scoped/cold-start-stats.query")
   # Logs Insights can lag ingestion by minutes. Every on-demand invocation in a cell is a
   # cold start, so retry until the count matches the successful invocations. SnapStart
   # bursts can legitimately reuse environments, and load cells have no expected count.
@@ -40,14 +47,16 @@ while IFS=$'\t' read -r variant fn runtime memory start end ok err <&3; do
     while [[ "$(echo "$stats" | jq -r '.[0].n // 0')" -lt "$ok" && $attempt -le 6 ]]; do
       log "$cell: $(echo "$stats" | jq -r '.[0].n // 0') of $ok cold starts visible yet; waiting 30 s (attempt $attempt/6)"
       sleep 30
-      stats=$(run_insights_query "$log_group" "$start" "$((end + 5))" "$BENCH_DIR/queries/cold-start-stats.query")
+      stats=$(run_insights_query "$log_group" "$start" "$((end + 5))" "$scoped/cold-start-stats.query")
       attempt=$((attempt + 1))
     done
   fi
   runtime_arns=$(run_insights_query "$log_group" "$start" "$((end + 5))" "$BENCH_DIR/queries/runtime-version.query")
-  run_insights_query "$log_group" "$start" "$((end + 5))" "$BENCH_DIR/queries/cold-start-raw.query" \
+  run_insights_query "$log_group" "$start" "$((end + 5))" "$scoped/cold-start-raw.query" \
     | jq -r '(.[0] // {} | keys_unsorted) as $k | if ($k | length) == 0 then empty else ($k | @csv), (.[] | [.[$k[]]] | @csv) end' \
     > "$DIR/raw/$cell.csv"
+
+  rm -rf "$scoped"
 
   results=$(jq -n --argjson acc "$results" --argjson stats "$stats" --argjson arns "$runtime_arns" \
     --arg variant "$variant" --arg runtime "$runtime" --arg memory "$memory" \
