@@ -1,0 +1,222 @@
+[
+  {
+    "variant": "minimal",
+    "runtime": "java21",
+    "memoryMb": 512,
+    "invokeOk": 100,
+    "invokeError": 0,
+    "runtimeVersionArns": [
+      "arn:aws:lambda:us-east-1::runtime:4ba7745a18788c9c9b5b35147000932c106eb1df13744d52691b3aef27f5a57c"
+    ],
+    "stats": {
+      "n": 100,
+      "initMin": 421.32,
+      "initP50": 513.29,
+      "initP90": 535.41,
+      "initP99": 570.52,
+      "initMax": 581.06,
+      "totalP50": 820.28,
+      "totalP90": 854.5929,
+      "totalP99": 908.3182,
+      "totalMax": 914.44
+    }
+  },
+  {
+    "variant": "minimal",
+    "runtime": "java21",
+    "memoryMb": 1024,
+    "invokeOk": 100,
+    "invokeError": 0,
+    "runtimeVersionArns": [
+      "arn:aws:lambda:us-east-1::runtime:4ba7745a18788c9c9b5b35147000932c106eb1df13744d52691b3aef27f5a57c"
+    ],
+    "stats": {
+      "n": 100,
+      "initMin": 418.97,
+      "initP50": 509.32,
+      "initP90": 527.53,
+      "initP99": 533.2,
+      "initMax": 545.71,
+      "totalP50": 651.8149,
+      "totalP90": 680.4397,
+      "totalP99": 696.2632,
+      "totalMax": 698
+    }
+  },
+  {
+    "variant": "plain",
+    "runtime": "java21",
+    "memoryMb": 512,
+    "invokeOk": 100,
+    "invokeError": 0,
+    "runtimeVersionArns": [
+      "arn:aws:lambda:us-east-1::runtime:4ba7745a18788c9c9b5b35147000932c106eb1df13744d52691b3aef27f5a57c"
+    ],
+    "stats": {
+      "n": 100,
+      "initMin": 1417.94,
+      "initP50": 1889.8042,
+      "initP90": 1953.176,
+      "initP99": 2055.3194,
+      "initMax": 2209.98,
+      "totalP50": 4706.8413,
+      "totalP90": 4903.732,
+      "totalP99": 5196.4078,
+      "totalMax": 5334.62
+    }
+  },
+  {
+    "variant": "plain",
+    "runtime": "java21",
+    "memoryMb": 1024,
+    "invokeOk": 100,
+    "invokeError": 0,
+    "runtimeVersionArns": [
+      "arn:aws:lambda:us-east-1::runtime:4ba7745a18788c9c9b5b35147000932c106eb1df13744d52691b3aef27f5a57c"
+    ],
+    "stats": {
+      "n": 100,
+      "initMin": 1383.94,
+      "initP50": 1841.3265,
+      "initP90": 1906.8806,
+      "initP99": 1970.825,
+      "initMax": 2077.51,
+      "totalP50": 3158.8764,
+      "totalP90": 3281.1613,
+      "totalP99": 3401.3739,
+      "totalMax": 3458.71
+    }
+  },
+  {
+    "variant": "primed",
+    "runtime": "java21",
+    "memoryMb": 512,
+    "invokeOk": 100,
+    "invokeError": 0,
+    "runtimeVersionArns": [
+      "arn:aws:lambda:us-east-1::runtime:4ba7745a18788c9c9b5b35147000932c106eb1df13744d52691b3aef27f5a57c"
+    ],
+    "stats": {
+      "n": 100,
+      "initMin": 1938.11,
+      "initP50": 2599.4863,
+      "initP90": 2700.1163,
+      "initP99": 2779.5259,
+      "initMax": 2792.92,
+      "totalP50": 3235.5677,
+      "totalP90": 3354.1099,
+      "totalP99": 3418.4148,
+      "totalMax": 3488.4
+    }
+  },
+  {
+    "variant": "primed",
+    "runtime": "java21",
+    "memoryMb": 1024,
+    "invokeOk": 100,
+    "invokeError": 0,
+    "runtimeVersionArns": [
+      "arn:aws:lambda:us-east-1::runtime:4ba7745a18788c9c9b5b35147000932c106eb1df13744d52691b3aef27f5a57c"
+    ],
+    "stats": {
+      "n": 100,
+      "initMin": 1841.44,
+      "initP50": 2563.365,
+      "initP90": 2638.7527,
+      "initP99": 2760.1468,
+      "initMax": 2765.75,
+      "totalP50": 2916.127,
+      "totalP90": 3001.8894,
+      "totalP99": 3130.5882,
+      "totalMax": 3152.58
+    }
+  },
+  {
+    "variant": "sample",
+    "runtime": "java21",
+    "memoryMb": 512,
+    "invokeOk": 100,
+    "invokeError": 0,
+    "runtimeVersionArns": [
+      "arn:aws:lambda:us-east-1::runtime:4ba7745a18788c9c9b5b35147000932c106eb1df13744d52691b3aef27f5a57c"
+    ],
+    "stats": {
+      "n": 100,
+      "initMin": 1477.96,
+      "initP50": 1931.8194,
+      "initP90": 1980.6989,
+      "initP99": 2040.9895,
+      "initMax": 2125.97,
+      "totalP50": 4735.153,
+      "totalP90": 4908.6358,
+      "totalP99": 5108.8589,
+      "totalMax": 5132.64
+    }
+  },
+  {
+    "variant": "sample",
+    "runtime": "java21",
+    "memoryMb": 1024,
+    "invokeOk": 100,
+    "invokeError": 0,
+    "runtimeVersionArns": [
+      "arn:aws:lambda:us-east-1::runtime:4ba7745a18788c9c9b5b35147000932c106eb1df13744d52691b3aef27f5a57c"
+    ],
+    "stats": {
+      "n": 100,
+      "initMin": 1406.7,
+      "initP50": 1890.45,
+      "initP90": 1948.69,
+      "initP99": 2015.28,
+      "initMax": 2025.57,
+      "totalP50": 3187.4203,
+      "totalP90": 3294.3057,
+      "totalP99": 3394.5813,
+      "totalMax": 3408.84
+    }
+  },
+  {
+    "variant": "snapstart",
+    "runtime": "java21",
+    "memoryMb": 512,
+    "invokeOk": 100,
+    "invokeError": 0,
+    "runtimeVersionArns": [
+      "arn:aws:lambda:us-east-1::runtime:4ba7745a18788c9c9b5b35147000932c106eb1df13744d52691b3aef27f5a57c"
+    ],
+    "stats": {
+      "n": 100,
+      "initMin": 570.89,
+      "initP50": 662.3225,
+      "initP90": 718.8924,
+      "initP99": 801.6381,
+      "initMax": 854.85,
+      "totalP50": 1753.3193,
+      "totalP90": 1812.1142,
+      "totalP99": 1854.2545,
+      "totalMax": 1876.28
+    }
+  },
+  {
+    "variant": "snapstart",
+    "runtime": "java21",
+    "memoryMb": 1024,
+    "invokeOk": 100,
+    "invokeError": 0,
+    "runtimeVersionArns": [
+      "arn:aws:lambda:us-east-1::runtime:4ba7745a18788c9c9b5b35147000932c106eb1df13744d52691b3aef27f5a57c"
+    ],
+    "stats": {
+      "n": 100,
+      "initMin": 512.04,
+      "initP50": 681.8012,
+      "initP90": 772.5338,
+      "initP99": 836.8424,
+      "initMax": 883.32,
+      "totalP50": 1530.4758,
+      "totalP90": 1602.4852,
+      "totalP99": 1667.8505,
+      "totalMax": 1684.22
+    }
+  }
+]

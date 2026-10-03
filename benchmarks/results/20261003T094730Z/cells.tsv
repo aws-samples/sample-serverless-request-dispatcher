@@ -1,0 +1,11 @@
+variant	function	runtime	memoryMb	startEpoch	endEpoch	invokeOk	invokeError
+minimal	request-dispatcher-benchmark-MinimalFunction-0I8IzXK6QZMr	java21	512	1791020861	1791021649	100	0
+minimal	request-dispatcher-benchmark-MinimalFunction-0I8IzXK6QZMr	java21	1024	1791021649	1791022389	100	0
+plain	request-dispatcher-benchmark-PlainFunction-AB8VTCIFga8K	java21	512	1791020861	1791022040	100	0
+plain	request-dispatcher-benchmark-PlainFunction-AB8VTCIFga8K	java21	1024	1791022040	1791023040	100	0
+primed	request-dispatcher-benchmark-SamplePrimedFunction-f0t2aVjYr3Zq	java21	512	1791020861	1791021874	100	0
+primed	request-dispatcher-benchmark-SamplePrimedFunction-f0t2aVjYr3Zq	java21	1024	1791021874	1791022849	100	0
+sample	request-dispatcher-benchmark-SampleFunction-gbqLWGgxfRUH	java21	512	1791020861	1791022036	100	0
+sample	request-dispatcher-benchmark-SampleFunction-gbqLWGgxfRUH	java21	1024	1791022036	1791023038	100	0
+snapstart	request-dispatcher-benchmark-SnapStartFunction-Zxisz3SG2y3F	java21	512	1791020861	1791021163	100	0
+snapstart	request-dispatcher-benchmark-SnapStartFunction-Zxisz3SG2y3F	java21	1024	1791021163	1791021432	100	0
