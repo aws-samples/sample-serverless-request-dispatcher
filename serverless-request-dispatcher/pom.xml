@@ -32,6 +32,7 @@
         <maven.compiler.target>21</maven.compiler.target>
         <dagger.version>2.60.1</dagger.version>
         <lombok.version>1.18.48</lombok.version>
+        <jackson.version>2.22.3</jackson.version>
     </properties>
 
     <dependencies>
@@ -44,6 +45,27 @@
             <groupId>com.amazonaws.serverless</groupId>
             <artifactId>aws-serverless-java-container-core</artifactId>
             <version>1.8.2</version>
+            <exclusions>
+                <!-- Only used for multipart servlet uploads, which the dispatcher doesn't
+                     use; 1.4 (and its commons-io 2.2) have known vulnerabilities -->
+                <exclusion>
+                    <groupId>commons-fileupload</groupId>
+                    <artifactId>commons-fileupload</artifactId>
+                </exclusion>
+                <!-- Declared by container-core 1.8.2 but not used by any of its classes;
+                     a 2.13 module would also mismatch the Jackson 2.22 override below -->
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.module</groupId>
+                    <artifactId>jackson-module-afterburner</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <!-- Overrides the vulnerable Jackson 2.13.3 that container-core 1.8.2 brings in.
+             Declared directly so the version also applies to services using this library. -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>

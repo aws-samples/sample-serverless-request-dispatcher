@@ -83,9 +83,13 @@ Resources:
   # kics-scan ignore-block
   LoggingBucket:
     Type: AWS::S3::Bucket
+    Metadata:
+      checkov:
+        skip:
+          - id: CKV_AWS_18
+            comment: "This is the access-log destination bucket; logging it to itself would be recursive."
     Properties:
       BucketName: !Sub "${AWS::StackName}-access-logs"
-      AccessControl: Private
       OwnershipControls:
         Rules:
           - ObjectOwnership: BucketOwnerPreferred
@@ -141,7 +145,6 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Sub "${AWS::StackName}-product-images"
-      AccessControl: Private
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true
         BlockPublicPolicy: true
@@ -198,6 +201,13 @@ Resources:
 
   ProductApiFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      checkov:
+        skip:
+          - id: CKV_AWS_115
+            comment: "Sample: reserved concurrency depends on the account and workload; set ReservedConcurrentExecutions for production."
+          - id: CKV_AWS_117
+            comment: "Function calls only DynamoDB and S3 over public AWS endpoints with IAM auth and TLS; no VPC resources are used."
     Properties:
       CodeUri: target/sample-product-service.jar
       Handler: com.amazonaws.serverless.sample.LambdaHandler::handleRequest

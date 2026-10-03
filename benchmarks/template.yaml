@@ -36,6 +36,13 @@ Globals:
 Resources:
   ProductTable:
     Type: AWS::DynamoDB::Table
+    Metadata:
+      checkov:
+        skip:
+          - id: CKV_AWS_119
+            comment: "Benchmark table stays empty; encrypted at rest with the AWS owned key."
+          - id: CKV_AWS_28
+            comment: "Benchmark table stays empty and is deleted with the stack; no data to back up."
     Properties:
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
@@ -49,6 +56,13 @@ Resources:
 
   ProductImagesBucket:
     Type: AWS::S3::Bucket
+    Metadata:
+      checkov:
+        skip:
+          - id: CKV_AWS_18
+            comment: "Benchmark bucket is never written to and is deleted with the stack."
+          - id: CKV_AWS_21
+            comment: "Benchmark bucket is never written to; versioning would block stack deletion if objects existed."
     Properties:
       BucketEncryption:
         ServerSideEncryptionConfiguration:
@@ -63,6 +77,17 @@ Resources:
   # (a) Dispatcher + Dagger, no AWS SDK clients
   MinimalFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      checkov:
+        skip:
+          - id: CKV_AWS_115
+            comment: "Benchmark-only function in a short-lived test stack; reserved concurrency would cap the SnapStart burst."
+          - id: CKV_AWS_116
+            comment: "Benchmark-only, invoked synchronously; failures are counted by the scripts, not retried."
+          - id: CKV_AWS_117
+            comment: "Calls only DynamoDB and S3 public endpoints with IAM auth and TLS; a VPC would change the measured cold start."
+          - id: CKV_AWS_173
+            comment: "Environment variables hold only resource names and flags, no secrets; a CMK would add KMS work to the measured init."
     Properties:
       Handler: com.amazonaws.serverless.sample.benchmark.MinimalHandler::handleRequest
       LoggingConfig:
@@ -71,6 +96,17 @@ Resources:
   # (b) Same controller and SDK clients, wired by hand, switch dispatch
   PlainFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      checkov:
+        skip:
+          - id: CKV_AWS_115
+            comment: "Benchmark-only function in a short-lived test stack; reserved concurrency would cap the SnapStart burst."
+          - id: CKV_AWS_116
+            comment: "Benchmark-only, invoked synchronously; failures are counted by the scripts, not retried."
+          - id: CKV_AWS_117
+            comment: "Calls only DynamoDB and S3 public endpoints with IAM auth and TLS; a VPC would change the measured cold start."
+          - id: CKV_AWS_173
+            comment: "Environment variables hold only resource names and flags, no secrets; a CMK would add KMS work to the measured init."
     Properties:
       Handler: com.amazonaws.serverless.sample.benchmark.PlainHandler::handleRequest
       LoggingConfig:
@@ -84,6 +120,17 @@ Resources:
   # (c) The sample as shipped
   SampleFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      checkov:
+        skip:
+          - id: CKV_AWS_115
+            comment: "Benchmark-only function in a short-lived test stack; reserved concurrency would cap the SnapStart burst."
+          - id: CKV_AWS_116
+            comment: "Benchmark-only, invoked synchronously; failures are counted by the scripts, not retried."
+          - id: CKV_AWS_117
+            comment: "Calls only DynamoDB and S3 public endpoints with IAM auth and TLS; a VPC would change the measured cold start."
+          - id: CKV_AWS_173
+            comment: "Environment variables hold only resource names and flags, no secrets; a CMK would add KMS work to the measured init."
     Properties:
       Handler: com.amazonaws.serverless.sample.LambdaHandler::handleRequest
       LoggingConfig:
@@ -103,6 +150,17 @@ Resources:
   # (d) The sample with SDK priming during init (on-demand)
   SamplePrimedFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      checkov:
+        skip:
+          - id: CKV_AWS_115
+            comment: "Benchmark-only function in a short-lived test stack; reserved concurrency would cap the SnapStart burst."
+          - id: CKV_AWS_116
+            comment: "Benchmark-only, invoked synchronously; failures are counted by the scripts, not retried."
+          - id: CKV_AWS_117
+            comment: "Calls only DynamoDB and S3 public endpoints with IAM auth and TLS; a VPC would change the measured cold start."
+          - id: CKV_AWS_173
+            comment: "Environment variables hold only resource names and flags, no secrets; a CMK would add KMS work to the measured init."
     Properties:
       Handler: com.amazonaws.serverless.sample.LambdaHandler::handleRequest
       LoggingConfig:
@@ -119,6 +177,17 @@ Resources:
   # (e) The sample with SnapStart; priming runs before the snapshot is taken
   SnapStartFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      checkov:
+        skip:
+          - id: CKV_AWS_115
+            comment: "Benchmark-only function in a short-lived test stack; reserved concurrency would cap the SnapStart burst."
+          - id: CKV_AWS_116
+            comment: "Benchmark-only, invoked synchronously; failures are counted by the scripts, not retried."
+          - id: CKV_AWS_117
+            comment: "Calls only DynamoDB and S3 public endpoints with IAM auth and TLS; a VPC would change the measured cold start."
+          - id: CKV_AWS_173
+            comment: "Environment variables hold only resource names and flags, no secrets; a CMK would add KMS work to the measured init."
     Properties:
       Handler: com.amazonaws.serverless.sample.LambdaHandler::handleRequest
       LoggingConfig:
@@ -144,6 +213,15 @@ Resources:
 
   SnapStartApi:
     Type: AWS::Serverless::Api
+    Metadata:
+      checkov:
+        skip:
+          - id: CKV_AWS_120
+            comment: "Caching would hide Lambda invocations from the load test that the benchmark measures."
+          - id: CKV_AWS_73
+            comment: "Lambda X-Ray tracing is set by the TracingMode parameter; API stage tracing is not part of the measurement."
+          - id: CKV_AWS_76
+            comment: "Short-lived load-test API; Lambda REPORT logs are the measurement source."
     Properties:
       StageName: Prod
 
@@ -152,26 +230,51 @@ Resources:
   # stack, so collect results before 'sam delete'.
   MinimalLogGroup:
     Type: AWS::Logs::LogGroup
+    Metadata:
+      checkov:
+        skip:
+          - id: CKV_AWS_158
+            comment: "Benchmark log groups hold only Lambda platform and REPORT lines, no customer data; 14-day retention and deleted with the stack."
     Properties:
       LogGroupName: !Sub "/benchmarks/${AWS::StackName}/minimal"
       RetentionInDays: 14
   PlainLogGroup:
     Type: AWS::Logs::LogGroup
+    Metadata:
+      checkov:
+        skip:
+          - id: CKV_AWS_158
+            comment: "Benchmark log groups hold only Lambda platform and REPORT lines, no customer data; 14-day retention and deleted with the stack."
     Properties:
       LogGroupName: !Sub "/benchmarks/${AWS::StackName}/plain"
       RetentionInDays: 14
   SampleLogGroup:
     Type: AWS::Logs::LogGroup
+    Metadata:
+      checkov:
+        skip:
+          - id: CKV_AWS_158
+            comment: "Benchmark log groups hold only Lambda platform and REPORT lines, no customer data; 14-day retention and deleted with the stack."
     Properties:
       LogGroupName: !Sub "/benchmarks/${AWS::StackName}/sample"
       RetentionInDays: 14
   SamplePrimedLogGroup:
     Type: AWS::Logs::LogGroup
+    Metadata:
+      checkov:
+        skip:
+          - id: CKV_AWS_158
+            comment: "Benchmark log groups hold only Lambda platform and REPORT lines, no customer data; 14-day retention and deleted with the stack."
     Properties:
       LogGroupName: !Sub "/benchmarks/${AWS::StackName}/primed"
       RetentionInDays: 14
   SnapStartLogGroup:
     Type: AWS::Logs::LogGroup
+    Metadata:
+      checkov:
+        skip:
+          - id: CKV_AWS_158
+            comment: "Benchmark log groups hold only Lambda platform and REPORT lines, no customer data; 14-day retention and deleted with the stack."
     Properties:
       LogGroupName: !Sub "/benchmarks/${AWS::StackName}/snapstart"
       RetentionInDays: 14
