@@ -1,5 +1,5 @@
-filter @type = "REPORT"
-| parse @message /Restore Duration: (?<restoreDuration>[0-9.]+) ms/
+filter @message like /^REPORT RequestId/
+| parse @message "Restore Duration: * ms" as restoreDuration
 | stats count(*) as invocations,
         pct(@duration + coalesce(@initDuration, 0) + coalesce(restoreDuration, 0), 50) as p50,
         pct(@duration + coalesce(@initDuration, 0) + coalesce(restoreDuration, 0), 90) as p90,

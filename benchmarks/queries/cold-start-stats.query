@@ -1,5 +1,5 @@
-filter @type = "REPORT"
-| parse @message /Restore Duration: (?<restoreDuration>[0-9.]+) ms/
+filter @message like /^REPORT RequestId/
+| parse @message "Restore Duration: * ms" as restoreDuration
 | filter ispresent(@initDuration) or ispresent(restoreDuration)
 | fields coalesce(@initDuration, restoreDuration) as init,
          @duration + coalesce(@initDuration, 0) + coalesce(restoreDuration, 0) as total
